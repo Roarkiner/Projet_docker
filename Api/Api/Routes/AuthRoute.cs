@@ -87,6 +87,6 @@ public static class AuthRoute
             new Claim("id", utilisateur.Id.ToString())
         ]);
 
-        return Results.Ok(new ConnexionExport { Jwt = jwt });
+        return Results.Extensions.OK(new ConnexionExport { Jwt = jwt }, ConnexionExportContext.Default);
     }
 }
