@@ -1,0 +1,44 @@
+services:
+  api:
+    image: ${DOCKER_REGISTRY-}api
+    build:
+      context: .
+      dockerfile: Api/Api/Dockerfile
+    depends_on:
+      - mysql
+    ports:
+      - "5000:8080"
+
+  mysql:
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./db-init:/docker-entrypoint-initdb.d
+      - dbdata:/var/lib/mysql
+  
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8000:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - mysql
+
+  # front:
+  #   image: front
+  #   build: 
+  #     context: ../front
+  #     dockerfile: ./Dockerfile
+  #   ports:
+  #     - "9000:80"
+
+volumes:
+  dbdata:
+  

@@ -1,0 +1,24 @@
+CREATE DATABASE IF NOT EXISTS EcoleDocker;
+
+CREATE TABLE IF NOT EXISTS Utilisateur (
+    Id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Login VARCHAR(200) NOT NULL,
+    Mdp VARCHAR(300) NOT NULL,
+    Nom VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Image (
+    Id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    Url VARCHAR(1000) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS UtilisateurLikeImage (
+    IdUtilisateur INT NOT NULL,
+    IdImage INT NOT NULL,
+
+    Like: 
+
+    PRIMARY KEY (IdUtilisateur, IdImage),
+    FOREIGN KEY (IdUtilisateur) REFERENCES Utilisateur (Id),
+    FOREIGN KEY (IdImage) REFERENCES Image (Id)
+);
