@@ -61,15 +61,29 @@ public static class ImageRoute
 
         if(utilisateurImage is not null)
         {
-            nb = await con.ExecuteAsync("""
-                UPDATE UtilisateurAimeImage SET Aime = @Aime 
-                WHERE IdImage = @IdImage AND IdUtilisateur = @IdUtilisateur
-                """, new
+            if (_likeDislikeImport.Aime.HasValue)
             {
-                _likeDislikeImport.IdImage,
-                IdUtilisateur = id,
-                _likeDislikeImport.Aime
-            });
+                nb = await con.ExecuteAsync("""
+                    UPDATE UtilisateurAimeImage SET Aime = @Aime 
+                    WHERE IdImage = @IdImage AND IdUtilisateur = @IdUtilisateur
+                """, new
+                {
+                    _likeDislikeImport.IdImage,
+                    IdUtilisateur = id,
+                    _likeDislikeImport.Aime
+                });
+            }
+            else
+            {
+                nb = await con.ExecuteAsync("""
+                    DELETE FROM UtilisateurAimeImage
+                    WHERE IdImage = @IdImage AND IdUtilisateur = @IdUtilisateur
+                """, new
+                {
+                    _likeDislikeImport.IdImage,
+                    IdUtilisateur = id,
+                });
+            }
         }
         else
         {
