@@ -1,6 +1,7 @@
 ﻿using Api.Extensions;
 using Api.Factory;
 using Api.Models;
+using Api.ModelsExport;
 using Api.ModelsImport;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ public static class ImageRoute
         builder.WithOpenApi().ProducesServiceUnavailable();
 
         builder.MapGet("", ListerAsync)
-            .Produces<Image[]>();
+            .Produces<ImageExport[]>();
 
         builder.MapPut("like-dislike", AimerPasAimerAsync)
             .ProducesNoContent();
@@ -23,16 +24,23 @@ public static class ImageRoute
     }
 
     static async Task<IResult> ListerAsync(
+        HttpContext _httpContext,
         [FromServices] IBddConnexion _connexion
     )
     {
+        int id = _httpContext.RecupererId();
         var con = await _connexion.CreerAsync();
 
-        var liste = (await con.QueryAsync<Image>("""
-            SELECT * FROM Image
-           """)).ToArray();
+        var liste = (await con.QueryAsync<ImageExport>("""
+            SELECT i.*, aime
+            FROM `UtilisateurAimeImage` uai
+            RIGHT JOIN Image i on i.Id = uai.IdImage
+            WHERE IdUtilisateur = @id OR IdUtilisateur IS NULL 
+           """, new { id })).ToArray();
 
-        return Results.Extensions.OK(liste, ImageContext.Default);
+        con.Close();
+
+        return Results.Extensions.OK(liste, ImageExportContext.Default);
     }
 
     static async Task<IResult> AimerPasAimerAsync(
@@ -97,6 +105,8 @@ public static class ImageRoute
                 _likeDislikeImport.Aime
             });
         }
+
+        con.Close();
 
         return nb > 0 ? Results.NoContent() : Results.BadRequest("Erreur");
     }
