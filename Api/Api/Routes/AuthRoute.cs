@@ -61,6 +61,8 @@ public static class AuthRoute
             Nom = _inscriptionImport.Nom.XSS()
         });
 
+        con.Close();
+
         return nb > 0 ? Results.NoContent() : Results.BadRequest("Erreur !");
     }
 
@@ -86,6 +88,8 @@ public static class AuthRoute
         string jwt = _jwtServ.Generer([
             new Claim("id", utilisateur.Id.ToString())
         ]);
+
+        con.Close();
 
         return Results.Extensions.OK(new ConnexionExport { Jwt = jwt }, ConnexionExportContext.Default);
     }

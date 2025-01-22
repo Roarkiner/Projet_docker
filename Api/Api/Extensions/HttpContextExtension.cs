@@ -9,6 +9,6 @@ public static class HttpContextExtension
     /// </summary>
     /// <param name="_httpContext"></param>
     /// <returns>Id publique de l'utilisateur</returns>
-    public static int RecupererId(this HttpContext _httpContext) => 1; //int.Parse(_httpContext.User.FindFirstValue("id")!);
+    public static int RecupererId(this HttpContext _httpContext) => int.Parse(_httpContext.User.FindFirstValue("id")!);
 
 }

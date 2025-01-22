@@ -15,10 +15,12 @@ public static class ImageRoute
         builder.WithOpenApi().ProducesServiceUnavailable();
 
         builder.MapGet("", ListerAsync)
-            .Produces<ImageExport[]>();
+            .Produces<ImageExport[]>()
+            .RequireAuthorization();
 
         builder.MapPut("like-dislike", AimerPasAimerAsync)
-            .ProducesNoContent();
+            .ProducesNoContent()
+            .RequireAuthorization();
 
         return builder;
     }
