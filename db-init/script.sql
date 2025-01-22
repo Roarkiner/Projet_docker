@@ -24,4 +24,4 @@ CREATE TABLE IF NOT EXISTS EcoleDocker.UtilisateurAimeImage (
 );
 
 INSERT INTO EcoleDocker.Utilisateur (Id, Login, Mdp, Nom) VALUES (1, "string", "7Hi/Kz97PLjzepAJfxlVKA==$VO5njhbFfFq2SltzGcJq/Vr24FypKv4CYxF/9NLmfss=", "test");
-INSERT INTO EcoleDocker.Image (Id, Url) VALUES (1, "img1.png"), (2, "img2.png"), (3, "img3.png"), (4, "img4.png");
+INSERT INTO EcoleDocker.Image (Id, Url) VALUES (1, "https://pokehelp.github.io/Image/HOME/normal/0001.png"), (2, "https://pokehelp.github.io/Image/HOME/normal/0002.png"), (3, "https://pokehelp.github.io/Image/HOME/normal/0003.png"), (4, "https://pokehelp.github.io/Image/HOME/normal/0004.png");
