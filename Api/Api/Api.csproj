@@ -9,6 +9,16 @@
 	<DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Rsa\clePriver.bin" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Rsa\clePriver.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 
 	<ItemGroup>
 		<PackageReference Include="Dapper" Version="2.1.35" />
@@ -27,10 +37,6 @@
 		</PackageReference>
 
 		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Rsa\" />
 	</ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -7,6 +7,9 @@ string cheminCleRsa = builder.Configuration.GetValue<string>("cheminCleRsa")!;
 
 RSA rsa = RSA.Create();
 
+if(!Directory.Exists("Rsa"))
+    Directory.CreateDirectory("Rsa");
+
 // creer la cle une seule fois
 if (!File.Exists(cheminCleRsa))
 {
