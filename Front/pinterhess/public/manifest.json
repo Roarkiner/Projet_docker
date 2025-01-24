@@ -1,0 +1,20 @@
+{
+  "short_name": "PinterHess",
+  "name": "PinterHess",
+  "icons": [
+    {
+      "src": "whale192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "whale512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
