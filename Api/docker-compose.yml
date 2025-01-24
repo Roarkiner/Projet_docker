@@ -3,7 +3,7 @@ services:
     image: ${DOCKER_REGISTRY-}api
     build:
       context: .
-      dockerfile: Api/Api/Dockerfile
+      dockerfile: Api/Dockerfile
     depends_on:
       - mysql
     ports:

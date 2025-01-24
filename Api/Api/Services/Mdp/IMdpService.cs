@@ -24,6 +24,6 @@ namespace Services.Mdp
         /// <param name="_mdp">Mdp à vérifier</param>
         /// <param name="_mdpHash">Mdp hashé</param>
         /// <returns>True => OK / False => pas OK</returns>
-        bool VerifierHash(string _mdp, string _mdpHash)
+        bool VerifierHash(string _mdp, string _mdpHash);
     }
 }
