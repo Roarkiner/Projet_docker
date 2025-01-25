@@ -2,12 +2,12 @@
 
 namespace Api.ModelsExport;
 
-public record ImageExport
+public record UserLikedImageExport
 {
     public int Id { get; init; }
     public required string Url { get; init; }
     public bool? Aime { get; init; }
 }
 
-[JsonSerializable(typeof(ImageExport[]))]
-public partial class ImageExportContext: JsonSerializerContext { }
+[JsonSerializable(typeof(UserLikedImageExport[]))]
+public partial class UserLikedImageExportContext : JsonSerializerContext { }
