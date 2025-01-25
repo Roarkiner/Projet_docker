@@ -5,17 +5,21 @@ using Api.ModelsExport;
 using Api.ModelsImport;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Routes;
 
 public static class ImageRoute
 {
-    public static RouteGroupBuilder AjouterRouteImage(this RouteGroupBuilder builder)
+    public static RouteGroupBuilder AjouterRouteImageLike(this RouteGroupBuilder builder)
     {
         builder.WithOpenApi().ProducesServiceUnavailable();
 
-        builder.MapGet("", ListerAsync)
-            .Produces<ImageExport[]>()
+        builder.MapGet("", ListImageLikeDislikeCountUserAsync)
+            .Produces<UserLikedImageExport[]>();
+
+        builder.MapGet("currentUser", ListForCurrentUserAsync)
+            .Produces<UserLikedImageExport[]>()
             .RequireAuthorization();
 
         builder.MapPut("like-dislike", AimerPasAimerAsync)
@@ -25,7 +29,28 @@ public static class ImageRoute
         return builder;
     }
 
-    static async Task<IResult> ListerAsync(
+    static async Task<IResult> ListImageLikeDislikeCountUserAsync(
+        HttpContext _httpContext,
+        [FromServices] IBddConnexion _connexion
+    )
+    {
+        var con = await _connexion.CreerAsync();
+
+        var liste = (await con.QueryAsync<ImageLikeDislikeCountExport>("""
+            SELECT 
+               UrlImage,
+               SUM(CASE WHEN aime = 1 THEN 1 ELSE 0 END) AS LikeCount,
+               SUM(CASE WHEN aime = 0 THEN 1 ELSE 0 END) AS DislikeCount
+           FROM `UtilisateurAimeImage`
+           GROUP BY UrlImage
+           """)).ToArray();
+
+        con.Close();
+
+        return Results.Extensions.OK(liste, ImageLikeDislikeCountExportContext.Default);
+    }
+
+    static async Task<IResult> ListForCurrentUserAsync(
         HttpContext _httpContext,
         [FromServices] IBddConnexion _connexion
     )
@@ -33,16 +58,15 @@ public static class ImageRoute
         int id = _httpContext.RecupererId();
         var con = await _connexion.CreerAsync();
 
-        var liste = (await con.QueryAsync<ImageExport>("""
+        var liste = (await con.QueryAsync<UserLikedImageExportContext>("""
             SELECT i.*, aime
             FROM `UtilisateurAimeImage` uai
-            RIGHT JOIN Image i on i.Id = uai.IdImage
             WHERE IdUtilisateur = @id OR IdUtilisateur IS NULL 
            """, new { id })).ToArray();
 
         con.Close();
 
-        return Results.Extensions.OK(liste, ImageExportContext.Default);
+        return Results.Extensions.OK(liste, UserLikedImageExportContext.Default);
     }
 
     static async Task<IResult> AimerPasAimerAsync(
@@ -51,7 +75,7 @@ public static class ImageRoute
         [FromBody] LikeDislikeImport _likeDislikeImport
     )
     {
-        if (_likeDislikeImport.IdImage <= 0)
+        if (_likeDislikeImport.UrlImage.IsNullOrEmpty())
             return Results.NotFound();
 
         int nb = 0;
@@ -62,10 +86,10 @@ public static class ImageRoute
         var utilisateurImage = await con.QueryFirstOrDefaultAsync<UtilisateurAimeImg>("""
             SELECT * 
             FROM UtilisateurAimeImage 
-            WHERE IdImage = @IdImage AND IdUtilisateur = @IdUtilisateur
+            WHERE UrlImage = @UrlImage AND IdUtilisateur = @IdUtilisateur
             """, new
         {
-            _likeDislikeImport.IdImage,
+            _likeDislikeImport.UrlImage,
             IdUtilisateur = id
         });
 
@@ -75,10 +99,10 @@ public static class ImageRoute
             {
                 nb = await con.ExecuteAsync("""
                     UPDATE UtilisateurAimeImage SET Aime = @Aime 
-                    WHERE IdImage = @IdImage AND IdUtilisateur = @IdUtilisateur
+                    WHERE UrlImage = @UrlImage AND IdUtilisateur = @IdUtilisateur
                 """, new
                 {
-                    _likeDislikeImport.IdImage,
+                    _likeDislikeImport.UrlImage,
                     IdUtilisateur = id,
                     _likeDislikeImport.Aime
                 });
@@ -87,10 +111,10 @@ public static class ImageRoute
             {
                 nb = await con.ExecuteAsync("""
                     DELETE FROM UtilisateurAimeImage
-                    WHERE IdImage = @IdImage AND IdUtilisateur = @IdUtilisateur
+                    WHERE UrlImage = @UrlImage AND IdUtilisateur = @IdUtilisateur
                 """, new
                 {
-                    _likeDislikeImport.IdImage,
+                    _likeDislikeImport.UrlImage,
                     IdUtilisateur = id,
                 });
             }
@@ -98,11 +122,11 @@ public static class ImageRoute
         else
         {
             nb = await con.ExecuteAsync("""
-                INSERT INTO UtilisateurAimeImage (Aime, IdImage, IdUtilisateur) VALUES 
-                    (@Aime, @IdImage, @IdUtilisateur)
+                INSERT INTO UtilisateurAimeImage (Aime, UrlImage, IdUtilisateur) VALUES 
+                    (@Aime, @UrlImage, @IdUtilisateur)
                 """, new
             {
-                _likeDislikeImport.IdImage,
+                _likeDislikeImport.UrlImage,
                 IdUtilisateur = id,
                 _likeDislikeImport.Aime
             });
