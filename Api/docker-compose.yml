@@ -1,25 +1,24 @@
 services:
   api:
-    image: ${DOCKER_REGISTRY-}api
     build:
       context: .
       dockerfile: Api/Dockerfile
     depends_on:
       - mysql
-    ports:
-      - "5000:8080"
+    networks:
+      - app-network
 
   mysql:
     image: mysql:latest
     restart: always
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
-      - ./db-init:/docker-entrypoint-initdb.d
+      - ../db-init:/docker-entrypoint-initdb.d
       - dbdata:/var/lib/mysql
-  
+    networks:
+      - app-network
+
   phpmyadmin:
     image: phpmyadmin
     restart: always
@@ -30,7 +29,9 @@ services:
       MYSQL_ROOT_PASSWORD: root
     depends_on:
       - mysql
-
+    networks:
+      - app-network
+ 
   # front:
   #   image: front
   #   build: 
@@ -42,3 +43,6 @@ services:
 volumes:
   dbdata:
   
+networks:
+  app-network:
+    driver: bridge
