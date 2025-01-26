@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS UtilisateurAimeImage (
 
 INSERT INTO Utilisateur (Id, Login, Mdp, Nom) 
 VALUES 
-    (1, "admin", "7Hi/Kz97PLjzepAJfxlVKA==$VO5njhbFfFq2SltzGcJq/Vr24FypKv4CYxF/9NLmfss=", "Frank"), 
-    (2, "test", "7Hi/Kz97PLjzepAJfxlVKA==$VO5njhbFfFq2SltzGcJq/Vr24FypKv4CYxF/9NLmfss=", "Michel");
+    (1, "admin", "9DuVSQniPBea1jfkNexYWw==$bH6TZkmMPVk2W5DCYtNIMxG4sMraevpoxCddtkXTnVQ=", "Frank"), 
+    (2, "test", "9DuVSQniPBea1jfkNexYWw==$bH6TZkmMPVk2W5DCYtNIMxG4sMraevpoxCddtkXTnVQ=", "Michel");
 
 INSERT INTO UtilisateurAimeImage (IdUtilisateur, UrlImage, Aime) 
 VALUES 

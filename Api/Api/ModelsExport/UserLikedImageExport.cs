@@ -5,7 +5,7 @@ namespace Api.ModelsExport;
 public record UserLikedImageExport
 {
     public int Id { get; init; }
-    public required string Url { get; init; }
+    public required string UrlImage { get; init; }
     public bool? Aime { get; init; }
 }
 

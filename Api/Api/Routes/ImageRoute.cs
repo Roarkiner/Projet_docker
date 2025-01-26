@@ -16,7 +16,7 @@ public static class ImageRoute
         builder.WithOpenApi().ProducesServiceUnavailable();
 
         builder.MapGet("", ListImageLikeDislikeCountUserAsync)
-            .Produces<UserLikedImageExport[]>();
+            .Produces<ImageLikeDislikeCountExport[]>();
 
         builder.MapGet("currentUser", ListForCurrentUserAsync)
             .Produces<UserLikedImageExport[]>()
@@ -58,8 +58,8 @@ public static class ImageRoute
         int id = _httpContext.RecupererId();
         var con = await _connexion.CreerAsync();
 
-        var liste = (await con.QueryAsync<UserLikedImageExportContext>("""
-            SELECT i.*, aime
+        var liste = (await con.QueryAsync<UserLikedImageExport>("""
+            SELECT IdUtilisateur as Id, UrlImage, Aime
             FROM `UtilisateurAimeImage` uai
             WHERE IdUtilisateur = @id OR IdUtilisateur IS NULL 
            """, new { id })).ToArray();
