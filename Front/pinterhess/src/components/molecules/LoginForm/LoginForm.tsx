@@ -31,7 +31,6 @@ const LoginForm: FC = () => {
 				window.location.href = '/gallery';
 			});
 		} catch (error) {
-			console.log(error);
 			setErrors('Une erreur à été retournée, veuillez-rééssayer.');
 		} finally {
 			setLoading(false);
