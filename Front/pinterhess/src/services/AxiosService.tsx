@@ -1,8 +1,9 @@
 import axios from 'axios';
+import config from '../config.json'
 import Cookies from 'js-cookie';
 
 const axiosService = axios.create({
-	baseURL: process.env.REACT_APP_API_URL,
+	baseURL: config.API_URL,
 	headers: {
 		'Content-Type': 'application/json',
 	},

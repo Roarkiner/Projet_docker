@@ -1,16 +1,16 @@
 export type LoginRequestModel = {
     login: string;
-    password: string;
+    mdp: string;
 }
 
 export type RegisterRequestModel = {
-    name: string;
     login: string;
-    password: string;
+    nom: string;
+    mdp: string;
 }
 
 export interface User {
-    Id: number;
-    Login: string;
-    Nom: string;
+    id: number;
+    login: string;
+    nom: string;
 }

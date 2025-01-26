@@ -6,6 +6,7 @@ services:
     depends_on:
       - mysql
     networks:
+      - internal-network
       - app-network
 
   mysql:
@@ -17,7 +18,7 @@ services:
       - ../db-init:/docker-entrypoint-initdb.d
       - dbdata:/var/lib/mysql
     networks:
-      - app-network
+      - internal-network
 
   phpmyadmin:
     image: phpmyadmin
@@ -30,25 +31,25 @@ services:
     depends_on:
       - mysql
     networks:
-      - app-network
- 
+      - internal-network
+
   front:
-    image: front
-    build: 
-      context: ../front
+    build:
+      context: ../front/pinterhess
       dockerfile: ./Dockerfile
     ports:
       - "9000:80"
     networks:
       - app-network
-    depends_on:
-      - api
-    environment:
-      - REACT_APP_API_URL=http://api:5256
-      
+    volumes:
+      - ../gallery_images:/usr/share/nginx/html/images
+
 volumes:
   dbdata:
-  
+
+
 networks:
+  internal-network:
+    driver: bridge
   app-network:
     driver: bridge

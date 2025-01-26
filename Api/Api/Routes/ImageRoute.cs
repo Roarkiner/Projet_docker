@@ -16,7 +16,7 @@ public static class ImageRoute
         builder.WithOpenApi().ProducesServiceUnavailable();
 
         builder.MapGet("", ListImageLikeDislikeCountUserAsync)
-            .Produces<UserLikedImageExport[]>();
+            .Produces<ImageLikeDislikeCountExport[]>();
 
         builder.MapGet("currentUser", ListForCurrentUserAsync)
             .Produces<UserLikedImageExport[]>()

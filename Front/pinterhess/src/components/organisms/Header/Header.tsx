@@ -6,7 +6,7 @@ import { FC, useState } from "react";
 import CircularImage from "../../atoms/CircularImage/CircularImage";
 
 const Header: FC = () => {
-	const { isConnected, user } = useAuth();
+	const { isConnected, user, logout } = useAuth();
 	const [hovered, setHovered] = useState(false);
 
 	return (
@@ -23,10 +23,11 @@ const Header: FC = () => {
 							sx={{ color: "black", '&:hover': { color: "red" } }}
 							onMouseEnter={() => setHovered(true)}
 							onMouseLeave={() => setHovered(false)}
+							onClick={logout}
 						>
 							<Box display='flex' alignItems='center'>
 								<AccountCircleIcon style={{ marginRight: '0.5rem' }} />
-								<h3>{hovered ? "Se déconnecter" : `Bienvenue, ${user?.Nom}`}</h3>
+								<h3>{hovered ? "Se déconnecter" : `Bienvenue, ${user?.nom}`}</h3>
 							</Box>
 						</Button>
 					}

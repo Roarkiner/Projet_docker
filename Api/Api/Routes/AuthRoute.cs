@@ -1,13 +1,13 @@
-﻿using Api.Extensions;
+﻿using System.Security.Claims;
+using Api.Extensions;
 using Api.Factory;
 using Api.Models;
+using Api.ModelsExport;
 using Api.ModelsImport;
-using System.Security.Claims;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Services.Jwts;
 using Services.Mdp;
-using Api.ModelsExport;
 
 namespace Api.Routes;
 
@@ -18,7 +18,7 @@ public static class AuthRoute
         builder.WithOpenApi().ProducesServiceUnavailable();
 
         builder.MapPost("inscription", InscriptionAsync)
-            .ProducesNoContent()
+            .Produces<ConnexionExport>()
             .ProducesBadRequest();
 
         builder.MapPost("login", ConnexionAsync)
@@ -31,6 +31,7 @@ public static class AuthRoute
     static async Task<IResult> InscriptionAsync(
         [FromServices] IBddConnexion _connexion,
         [FromServices] IMdpService _mdpServ,
+        [FromServices] IJwtService _jwtServ,
         [FromBody] InscriptionImport _inscriptionImport
     )
     {
@@ -51,19 +52,30 @@ public static class AuthRoute
             return Results.BadRequest("Le login existe déjà");
 
         string mdpHash = _mdpServ.Hasher(_inscriptionImport.Mdp);
+        string login = _inscriptionImport.Login.XSS();
+        string name = _inscriptionImport.Nom.XSS();
 
-        int nb = await con.ExecuteAsync("""
-           INSERT INTO Utilisateur (Login, Mdp, Nom) VALUES (@Login, @Mdp, @Nom)
-        """, new
-        {
-            Mdp = mdpHash,
-            Login = _inscriptionImport.Login.XSS(),
-            Nom = _inscriptionImport.Nom.XSS()
-        });
+        int idUser = await con.QuerySingleAsync<int>(
+            @"
+            INSERT INTO Utilisateur (Login, Mdp, Nom) 
+            VALUES (@Login, @Mdp, @Nom);
+            SELECT LAST_INSERT_ID();",
+            new
+            {
+                Login = _inscriptionImport.Login.XSS(),
+                Mdp = mdpHash,
+                Nom = _inscriptionImport.Nom.XSS()
+            });
 
         con.Close();
 
-        return nb > 0 ? Results.NoContent() : Results.BadRequest("Erreur !");
+        ConnexionUser user = new ConnexionUser() { Id = idUser, Login = login, Nom = name };
+
+        string jwt = _jwtServ.Generer([
+            new Claim("id", idUser.ToString())
+        ]);
+
+        return idUser > 0 ? Results.Extensions.OK(new ConnexionExport { User = user, Jwt = jwt }, ConnexionExportContext.Default) : Results.BadRequest("Erreur !");
     }
 
     static async Task<IResult> ConnexionAsync(
@@ -78,19 +90,21 @@ public static class AuthRoute
 
         var con = await _connexion.CreerAsync();
 
-        var utilisateur = await con.QueryFirstOrDefaultAsync<Utilisateur>("" +
+        var user = await con.QueryFirstOrDefaultAsync<Utilisateur>("" +
             "SELECT * FROM Utilisateur WHERE Login = @Login", new { _connexionImport.Login }
         );
 
-        if (utilisateur is null || !_mdpServ.VerifierHash(_connexionImport.Mdp, utilisateur.Mdp))
+        if (user is null || !_mdpServ.VerifierHash(_connexionImport.Mdp, user.Mdp))
             return Results.BadRequest("Login ou mdp invalide");
 
         string jwt = _jwtServ.Generer([
-            new Claim("id", utilisateur.Id.ToString())
+            new Claim("id", user.Id.ToString())
         ]);
 
         con.Close();
 
-        return Results.Extensions.OK(new ConnexionExport { Jwt = jwt }, ConnexionExportContext.Default);
+        ConnexionUser conUser = new ConnexionUser() { Id = user.Id, Login = user.Login, Nom = user.Nom };
+
+        return Results.Extensions.OK(new ConnexionExport { User = conUser, Jwt = jwt }, ConnexionExportContext.Default);
     }
 }

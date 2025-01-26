@@ -19,18 +19,19 @@ const LoginForm: FC = () => {
 
 		const data: LoginRequestModel = {
 			login: loginField,
-			password: password
+			mdp: password
 		}
 
 		try {
-			const response = await axiosService.post("/login", data);
+			const response = await axiosService.post("/auth/login", data);
 			const responseData = response?.data;
-			if (!responseData?.User || !responseData?.Jwt) throw new Error();
+			if (!responseData?.user || !responseData?.jwt) throw new Error();
 
-			login(responseData.User, responseData.Jwt, () => {
+			login(responseData.user, responseData.jwt, () => {
 				window.location.href = '/gallery';
 			});
 		} catch (error) {
+			console.log(error);
 			setErrors('Une erreur à été retournée, veuillez-rééssayer.');
 		} finally {
 			setLoading(false);

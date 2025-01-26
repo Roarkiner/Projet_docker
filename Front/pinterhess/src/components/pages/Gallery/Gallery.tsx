@@ -1,12 +1,11 @@
 import React from "react";
+import { ImagesGrid } from "../../organisms";
 
 const Gallery = () => {
 
-	return (
-		<div>
-			
-		</div>
-	);
+	return (<>
+		<ImagesGrid />
+	</>);
 };
 
 export default Gallery;

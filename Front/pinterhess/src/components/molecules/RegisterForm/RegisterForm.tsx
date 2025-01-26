@@ -51,15 +51,15 @@ const RegisterForm: FC = () => {
 			return;
 		}
 
-		const data: RegisterRequestModel = { name, login: loginField, password };
+		const data: RegisterRequestModel = { nom: name, login: loginField, mdp: password };
 
 		try {
-			const response = await axiosService.post("/register", data);
+			const response = await axiosService.post("/auth/inscription", data);
 			const responseData = response?.data;
-			if (!responseData?.User || !responseData?.Jwt) throw new Error();
+			if (!responseData?.user || !responseData?.jwt) throw new Error();
 
-			login(responseData.User, responseData.Jwt, () => {
-				window.location.href = '/profile';
+			login(responseData.user, responseData.jwt, () => {
+				window.location.href = '/gallery';
 			});
 		} catch (error) {
 			console.error('Erreur inconnue:', error);
