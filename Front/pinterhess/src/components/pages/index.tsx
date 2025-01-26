@@ -1,4 +1,4 @@
 import Authentication from "./Authentication/Authentication";
-import Home from "./Home/Home";
+import Gallery from "./Gallery/Gallery";
 
-export { Authentication, Home };
+export { Authentication, Gallery };

@@ -32,14 +32,20 @@ services:
     networks:
       - app-network
  
-  # front:
-  #   image: front
-  #   build: 
-  #     context: ../front
-  #     dockerfile: ./Dockerfile
-  #   ports:
-  #     - "9000:80"
-
+  front:
+    image: front
+    build: 
+      context: ../front
+      dockerfile: ./Dockerfile
+    ports:
+      - "9000:80"
+    networks:
+      - app-network
+    depends_on:
+      - api
+    environment:
+      - REACT_APP_API_URL=http://api:5256
+      
 volumes:
   dbdata:
   

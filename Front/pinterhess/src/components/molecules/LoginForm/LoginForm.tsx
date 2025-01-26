@@ -7,7 +7,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 
 
 const LoginForm: FC = () => {
-	const [email, setEmail] = useState('');
+	const [loginField, setLoginField] = useState('');
 	const [password, setPassword] = useState('');
 	const [errors, setErrors] = useState('');
 	const [loading, setLoading] = useState(false);
@@ -18,18 +18,17 @@ const LoginForm: FC = () => {
 		setLoading(true);
 
 		const data: LoginRequestModel = {
-			email: email,
+			login: loginField,
 			password: password
 		}
 
 		try {
 			const response = await axiosService.post("/login", data);
-			const reponseData = response?.data;
-			if (reponseData?.user == null || reponseData?.user == null)
-				throw new Error();
+			const responseData = response?.data;
+			if (!responseData?.User || !responseData?.Jwt) throw new Error();
 
-			login(reponseData.user, reponseData.token, () => {
-				window.location.href = '/profile';
+			login(responseData.User, responseData.Jwt, () => {
+				window.location.href = '/gallery';
 			});
 		} catch (error) {
 			setErrors('Une erreur à été retournée, veuillez-rééssayer.');
@@ -45,13 +44,13 @@ const LoginForm: FC = () => {
 			</Typography>
 			<form onSubmit={handleSubmit}>
 				<TextField
-					label="Email"
+					label="Login"
 					variant="outlined"
 					fullWidth
 					margin="normal"
-					type="email"
-					value={email}
-					onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+					type="text"
+					value={loginField}
+					onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginField(e.target.value)}
 					required
 					disabled={loading}
 				/>

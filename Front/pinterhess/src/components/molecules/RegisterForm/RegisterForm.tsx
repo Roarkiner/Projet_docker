@@ -3,17 +3,14 @@ import { ChangeEvent, FC, useState } from "react";
 import { TextField, Typography } from "../../atoms";
 import { RegisterRequestModel } from "../../../typings/Auth";
 import axiosService from "../../../services/AxiosService";
-import axios, { AxiosError } from "axios";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const RegisterForm: FC = () => {
 	const [name, setName] = useState('');
-	const [email, setEmail] = useState('');
+	const [loginField, setLoginField] = useState('');
 	const [password, setPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
 	const [errors, setErrors] = useState({
-		name: '',
-		email: '',
 		password: '',
 		confirmPassword: '',
 		general: ''
@@ -47,39 +44,29 @@ const RegisterForm: FC = () => {
 		e.preventDefault();
 		setLoading(true);
 
-		setErrors({ name: '', email: '', password: '', confirmPassword: '', general: '' });
+		setErrors({ password: '', confirmPassword: '', general: '' });
 
 		if (!validateForm()) {
 			setLoading(false);
 			return;
 		}
 
-		const data: RegisterRequestModel = { name, email, password };
+		const data: RegisterRequestModel = { name, login: loginField, password };
 
 		try {
 			const response = await axiosService.post("/register", data);
 			const responseData = response?.data;
-			if (!responseData?.user || !responseData?.token) throw new Error();
+			if (!responseData?.User || !responseData?.Jwt) throw new Error();
 
-			login(responseData.user, responseData.token, () => {
+			login(responseData.User, responseData.Jwt, () => {
 				window.location.href = '/profile';
 			});
 		} catch (error) {
-			if (axios.isAxiosError(error)) {
-				const apiErrors = error.response?.data.errors ?? { general: error.message };
-				setErrors(prevErrors => ({
-					...prevErrors,
-					name: apiErrors.name ? apiErrors.name[0] : '',
-					email: apiErrors.email ? apiErrors.email[0] : '',
-					password: apiErrors.password ? apiErrors.password[0] : '',
-				  }));
-			} else {
-				console.error('Erreur inconnue:', error);
-				setErrors(prevErrors => ({
-					...prevErrors,
-					general: 'Une erreur à été retournée, veuillez-rééssayer.'
-				}));
-			}
+			console.error('Erreur inconnue:', error);
+			setErrors(prevErrors => ({
+				...prevErrors,
+				general: 'Une erreur à été retournée, veuillez-rééssayer.'
+			}));
 		} finally {
 			setLoading(false);
 		}
@@ -100,6 +87,17 @@ const RegisterForm: FC = () => {
 			</Typography>
 			<form onSubmit={handleSubmit}>
 				<TextField
+					label="Login"
+					variant="outlined"
+					fullWidth
+					margin="normal"
+					type="text"
+					value={loginField}
+					onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginField(e.target.value)}
+					required
+					disabled={loading}
+				/>
+				<TextField
 					label="Nom"
 					variant="outlined"
 					fullWidth
@@ -108,19 +106,6 @@ const RegisterForm: FC = () => {
 					value={name}
 					onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 					required
-					errorText={errors.name}
-					disabled={loading}
-				/>
-				<TextField
-					label="Email"
-					variant="outlined"
-					fullWidth
-					margin="normal"
-					type="email"
-					value={email}
-					onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-					required
-					errorText={errors.email}
 					disabled={loading}
 				/>
 				<TextField
