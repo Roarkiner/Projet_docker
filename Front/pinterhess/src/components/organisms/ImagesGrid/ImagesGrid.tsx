@@ -16,6 +16,11 @@ interface ApiImageCounters {
     DislikeCount: number;
 }
 
+interface CurrentUserReaction {
+    UrlImage: string;
+    Aime: boolean;
+}
+
 // const fileNames = [
 //     "image1.png",
 //     "image2.png",
@@ -29,6 +34,7 @@ const ImagesGrid: FC = () => {
     const [counters, setCounters] = useState<Record<number, { like: number; dislike: number }>>({});
     const [reactions, setReactions] = useState<Record<number, Reaction>>({});
     const { isConnected } = useAuth();
+    const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -40,14 +46,12 @@ const ImagesGrid: FC = () => {
                 const fileNames = Array.from(doc.querySelectorAll("a"))
                     .map((link) => (link as HTMLAnchorElement).href)
                     .filter((href) => href.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-                    .map((fullUrl) => {
-                        return fullUrl.split("/").pop() || "";
-                    });
+                    .map((fullUrl) => fullUrl.split("/").pop() || "");
 
-                const { data } = await axiosService.get<ApiImageCounters[]>("/image");
+                const { data: counterData } = await axiosService.get<ApiImageCounters[]>("/image");
 
                 const countersMap: Record<string, { like: number; dislike: number }> = {};
-                data.forEach((item) => {
+                counterData.forEach((item) => {
                     countersMap[item.UrlImage] = {
                         like: item.LikeCount,
                         dislike: item.DislikeCount,
@@ -56,28 +60,68 @@ const ImagesGrid: FC = () => {
 
                 const initialCounters: Record<number, { like: number; dislike: number }> = {};
                 const initialReactions: Record<number, Reaction> = {};
+                const initialLoading: Record<number, boolean> = {};
 
                 fileNames.forEach((fileName, i) => {
-                    if (countersMap[fileName]) {
-                        initialCounters[i] = { ...countersMap[fileName] };
-                    } else {
-                        initialCounters[i] = { like: 0, dislike: 0 };
-                    }
+                    const cm = countersMap[fileName];
+                    initialCounters[i] = cm ? { like: cm.like, dislike: cm.dislike } : { like: 0, dislike: 0 };
                     initialReactions[i] = "none";
+                    initialLoading[i] = false;
                 });
 
                 setImageNames(fileNames);
                 setCounters(initialCounters);
                 setReactions(initialReactions);
+                setLoadingStates(initialLoading);
+
+                if (isConnected()) {
+                    const { data: currentUserData } = await axiosService.get<CurrentUserReaction[]>("/image/currentUser");
+                    const userMap: Record<string, Reaction> = {};
+
+                    currentUserData.forEach((item) => {
+                        userMap[item.UrlImage] = item.Aime ? "like" : "dislike";
+                    });
+
+                    setReactions((prev) => {
+                        const updated = { ...prev };
+                        fileNames.forEach((fileName, i) => {
+                            if (userMap[fileName] !== undefined) {
+                                updated[i] = userMap[fileName];
+                            }
+                        });
+                        return updated;
+                    });
+                }
             } catch (error) {
-                console.error("Failed to load images:", error);
+                console.error("Failed to load images or user reactions:", error);
             }
         };
         fetchImages();
     }, []);
 
-    const handleLike = (index: number) => {
+    const updateReactionOnServer = async (fileName: string, reaction: Reaction, index: number) => {
+        if (!fileName) return;
+        setLoadingStates((prev) => ({ ...prev, [index]: true }));
+        let aime: boolean | null = null;
+        if (reaction === "like") aime = true;
+        if (reaction === "dislike") aime = false;
+        try {
+            await axiosService.put("/image/like-dislike", {
+                urlImage: fileName,
+                aime,
+            });
+        } catch (error) {
+            console.error("Failed to update reaction on server:", error);
+        } finally {
+            setLoadingStates((prev) => ({ ...prev, [index]: false }));
+        }
+    };
+
+    const handleLike = async (index: number) => {
         if (!isConnected) return;
+        if (loadingStates[index]) return;
+        const fileName = imageNames[index];
+
         setReactions((prevReactions) => {
             const oldReaction = prevReactions[index];
             const newReactions = { ...prevReactions };
@@ -106,12 +150,18 @@ const ImagesGrid: FC = () => {
                 newCounters[index] = updated;
                 return newCounters;
             });
+
             return newReactions;
         });
+
+        await updateReactionOnServer(fileName, reactions[index] === "like" ? "none" : "like", index);
     };
 
-    const handleDislike = (index: number) => {
+    const handleDislike = async (index: number) => {
         if (!isConnected) return;
+        if (loadingStates[index]) return;
+        const fileName = imageNames[index];
+
         setReactions((prevReactions) => {
             const oldReaction = prevReactions[index];
             const newReactions = { ...prevReactions };
@@ -140,8 +190,11 @@ const ImagesGrid: FC = () => {
                 newCounters[index] = updated;
                 return newCounters;
             });
+
             return newReactions;
         });
+
+        await updateReactionOnServer(fileName, reactions[index] === "dislike" ? "none" : "dislike", index);
     };
 
     return (
@@ -153,6 +206,8 @@ const ImagesGrid: FC = () => {
         >
             {imageNames.map((fileName, index) => {
                 const userReaction = reactions[index];
+                const isLoading = loadingStates[index];
+
                 return (
                     <Card
                         key={index}
@@ -183,7 +238,7 @@ const ImagesGrid: FC = () => {
                         >
                             <Box display="flex" alignItems="center" gap={1}>
                                 <IconButton
-                                    onClick={() => handleLike(index)}
+                                    onClick={() => handleLike(index) || isLoading}
                                     disabled={!isConnected()}
                                     color={userReaction === "like" ? "primary" : "default"}
                                 >
@@ -194,7 +249,7 @@ const ImagesGrid: FC = () => {
                             <Box display="flex" alignItems="center" gap={1}>
                                 <IconButton
                                     onClick={() => handleDislike(index)}
-                                    disabled={!isConnected()}
+                                    disabled={!isConnected() || isLoading}
                                     color={userReaction === "dislike" ? "error" : "default"}
                                 >
                                     <ThumbDownIcon />
